@@ -1,12 +1,12 @@
-from DAG import DirectedAcyclicGraph, Python_Operator 
-from collections import deque
+from DAG import DirectedAcyclicGraph, Python_Operator
+import time
 
-def func(x, y):
-    print(x+y)
+def func(x):
+    time.sleep(2)
+    print(x*x)
 
 
 if __name__ == '__main__':
-    
     with DirectedAcyclicGraph('My Prototype') as dag:
         node_a = Python_Operator('A', func, dag)
         node_b = Python_Operator('B', func, dag)
@@ -14,10 +14,10 @@ if __name__ == '__main__':
         node_e = Python_Operator('E', func, dag)
         node_f = Python_Operator('F', func, dag)
         node_g = Python_Operator('G', func, dag)
-        node_a>>node_b>>node_e>>node_g
-        node_a>>node_d>>node_e>>node_g
-        node_d>>node_f>>node_g
-        node_e>>node_f
+        node_a >> node_b >> node_e >> node_g
+        node_a >> node_d >> node_e >> node_g
+        node_d >> node_f >> node_g
+        node_e >> node_f
 
 
 

@@ -2,11 +2,14 @@ from datetime import datetime
 from multiprocessing.managers import BaseManager
 from configuration import address, authkey
 import pickle
+from collections import deque
+
 
 class Python_Operator:
     def __init__(self, task_id, python_callable, dag, kwargs=None):
         self.kwargs = kwargs
-        self.task_id = dag.dag_instance_id+'-'+task_id
+        self.task_id = task_id
+        self.task_instance_id = dag.dag_instance_id+'-'+task_id
         self.callable = python_callable
         self.child_nodes = set()
         self.parent_nodes = set()
@@ -39,10 +42,9 @@ class QueueManager(BaseManager):
 class DirectedAcyclicGraph:
     def __init__(self, dag_id):
         self.dag_id = dag_id
-        self.dag_instance_id = self.dag_id+'-'+str(datetime.datetime.now())
+        self.dag_instance_id = self.dag_id+'-'+str(datetime.now())
         self.__nodes = []
         self.topological_order = deque()
-
 
     def __isCycle(self):
         for node in self.__nodes:
@@ -89,17 +91,18 @@ class DirectedAcyclicGraph:
         self.__nodes.append(node)
 
     def pushTasks(self):
-
+        pass
 
     def __enter__(self):
         return self
         
-    def __exit__(self):
+    def __exit__(self, *args):
         if self.__isCycle():
             raise Exception('There is cycle in your Workflow')
         self.__topoLogicalSort()
 
-        # adding parent task instance ids for every node to check for execution dependency in worker node script ranther than the node objects which caueses serialization while pushing into the manager que 
+        # adding parent task instance ids for every node to check for execution dependency in worker node script ranther
+        # than the node objects which caueses serialization while pushing into the manager que
         for node in self.__nodes:
             new = []
             for node_p in node.parent_nodes:
@@ -108,13 +111,13 @@ class DirectedAcyclicGraph:
             
             # deleting child nodes for all the nodes as we do not want to serialize 
             del node.child_nodes
-         
+        QueueManager.register('get_queue')
         m = QueueManager(address=address, authkey=authkey)
         m.connect()
         queue = m.get_queue()
         for node in self.topological_order:
             task_binary = pickle.dumps(node)
             queue.put(task_binary)
-        print([node.val for node in self.topological_order])
+        print([node.task_instance_id for node in self.topological_order])
 
     
