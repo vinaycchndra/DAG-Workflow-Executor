@@ -13,32 +13,30 @@ class Python_Operator:
         self.callable = python_callable
         self.child_nodes = set()
         self.parent_nodes = set()
-        self.visited = self.is_executed = self.failed = False
+        self.visited = self.failed = False
         dag.addNode(self)
 
-    @property 
-    def readyToExecute(self):
-        for node in self.parent_nodes:
-            if not node.is_executed:
+    def readyToExecute(self, task_mem):
+        for task_id in self.parent_nodes:
+            if not task_mem.get(task_id):
                 return False
         return True
     
     def execute(self):
         self.callable(self.kwargs)
-        self.is_executed = True
     
     def __rshift__(self, next_node):
         self.child_nodes.add(next_node)
         next_node.parent_nodes.add(self)
         return next_node
 
-# Base Manager class for the inter python script communication for passing task nodes by creating task que
 
+# Base Manager class for the inter python script communication for passing task nodes by creating task que
 class QueueManager(BaseManager):
     pass
 
-# Graph class holds all the task nodes.
 
+# Graph class holds all the task nodes.
 class DirectedAcyclicGraph:
     def __init__(self, dag_id):
         self.dag_id = dag_id
@@ -112,10 +110,13 @@ class DirectedAcyclicGraph:
             # deleting child nodes for all the nodes as we do not want to serialize 
             del node.child_nodes
         QueueManager.register('get_queue')
+        QueueManager.register('get_dict')
         m = QueueManager(address=address, authkey=authkey)
         m.connect()
         queue = m.get_queue()
+        mem = m.get_dict()
         for node in self.topological_order:
+            mem.update({node.task_instance_id: False})
             task_binary = pickle.dumps(node)
             queue.put(task_binary)
         print([node.task_instance_id for node in self.topological_order])
