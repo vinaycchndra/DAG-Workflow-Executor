@@ -1,3 +1,3 @@
 address = ('localhost', 50000)
 authkey = b'abracadabra'
-worker_count = 5
+worker_count = 3

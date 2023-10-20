@@ -16,14 +16,25 @@ class Python_Operator:
         self.visited = self.failed = False
         dag.addNode(self)
 
-    def readyToExecute(self, task_mem):
+    # if task is failed we set its value to 2 and if task not ready to execute we return 0
+    def readyToExecuteOrFailed(self, task_mem):
+        failed = False
+        not_ready = False
         for task_id in self.parent_nodes:
-            if not task_mem.get(task_id):
-                return False
-        return True
+            bool_val = task_mem.get(task_id)
+            if bool_val == 2:
+                failed = True
+            if bool_val == 0:
+                not_ready = True
+        if failed:
+            return 2
+        if not_ready:
+            return 0
+        else:
+            return 1
     
     def execute(self):
-        self.callable(self.kwargs)
+        self.callable(**self.kwargs)
     
     def __rshift__(self, next_node):
         self.child_nodes.add(next_node)
@@ -116,7 +127,7 @@ class DirectedAcyclicGraph:
         queue = m.get_queue()
         mem = m.get_dict()
         for node in self.topological_order:
-            mem.update({node.task_instance_id: False})
+            mem.update({node.task_instance_id: 0})
             task_binary = pickle.dumps(node)
             queue.put(task_binary)
         print([node.task_instance_id for node in self.topological_order])

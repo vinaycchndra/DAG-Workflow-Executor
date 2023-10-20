@@ -12,9 +12,13 @@ def worker(q, mem):
         if q.qsize() > 0:
             task_binary = q.get()
             task_object = pickle.loads(task_binary)
-            print('Executing the task: '+ task_object.task_instance_id+' at {}'.format(datetime.now()))
-            task_object.execute()
-            mem.update({task_object.task_instance_id: True})
+            print('Executing the task: '+task_object.task_instance_id+' at {}'.format(datetime.now()))
+            try:
+                task_object.execute()
+                mem.update({task_object.task_instance_id: 1})
+            except Exception as e:
+                print(e)
+                mem.update({task_object.task_instance_id: 2})
 
 
 if __name__ == '__main__':
