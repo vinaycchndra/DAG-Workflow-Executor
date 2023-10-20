@@ -99,9 +99,6 @@ class DirectedAcyclicGraph:
     def addNode(self, node):
         self.__nodes.append(node)
 
-    def pushTasks(self):
-        pass
-
     def __enter__(self):
         return self
         
