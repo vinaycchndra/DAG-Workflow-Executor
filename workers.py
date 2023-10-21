@@ -16,8 +16,10 @@ def worker(q, mem):
             try:
                 task_object.execute()
                 mem.update({task_object.task_instance_id: 1})
+                print('task completed: ', task_object.task_instance_id)
             except Exception as e:
-                print(e)
+                print(e, task_object.task_instance_id)
+
                 mem.update({task_object.task_instance_id: 2})
 
 

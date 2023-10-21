@@ -1,6 +1,5 @@
 import pickle
 import time
-
 from configuration import address, authkey
 from DAG import QueueManager
 from dag_scripts import *
